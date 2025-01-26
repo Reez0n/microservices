@@ -1,32 +1,38 @@
-{% if user.is_authenticated %}
-  {% load django_bootstrap5 %}
-  <h5 class="mb-4">Оставить комментарий</h5>
-  <form method="post" action="{% url 'blog:add_comment' post.id %}">
-    {% csrf_token %}
-    {% bootstrap_form form %}
-    {% bootstrap_button button_type="submit" content="Отправить" %}
-  </form>
-{% endif %}
-<br>
-{% for comment in comments %}
-  <div class="media mb-4">
-    <div class="media-body">
-      <h5 class="mt-0">
-        <a href="{% url 'blog:profile' comment.author.username %}" name="comment_{{ comment.id }}">
-          @{{ comment.author.username }}
+<div class="col d-flex justify-content-center">
+  <div class="card" style="width: 40rem;">
+    <div class="card-body">
+      {% if post.image %}
+        <a href="{{ post.image.url }}" target="_blank">
+          <img class="border-3 rounded img-fluid img-thumbnail mb-2 mx-auto d-block" src="{{ post.image.url }}">
         </a>
-      </h5>
-      <small class="text-muted">{{ comment.created_at }}</small>
-      <br>
-      {{ comment.text|linebreaksbr }}
+      {% endif %}
+      <h5 class="card-title">{{ post.title }}</h5>
+      <h6 class="card-subtitle mb-2 text-muted">
+        <small>
+          {% if not post.is_published %}
+            <p class="text-danger">Пост снят с публикации админом</p>
+          {% elif not post.category.is_published %}
+            <p class="text-danger">Выбранная категория снята с публикации админом</p>
+          {% endif %}
+          {{ post.pub_date|date:"d E Y, H:i" }} | 
+          {% if post.location and post.location.is_published %}
+            {{ post.location.name }}
+          {% else %}
+            Планета Земля
+          {% endif %}
+          <br>
+          От автора 
+          <a class="text-muted" href="{% url 'users:profile' post.author %}">
+            @{{ post.author.username }}
+          </a> в категории 
+          {% include "includes/category_link.html" %}
+        </small>
+      </h6>
+      <p class="card-text">{{ post.text|truncatewords:10 }}</p>
+      <a href="{% url 'posts:post_detail' post.id %}" class="card-link">Читать полный текст</a>
+      <a href="{% url 'posts:post_detail' post.id %}" class="card-link text-muted">
+        Комментарии ({{ post.comment_count }})
+      </a>
     </div>
-    {% if user == comment.author %}
-      <a class="btn btn-sm text-muted" href="{% url 'blog:edit_comment' post.id comment.id %}" role="button">
-        Отредактировать комментарий
-      </a>
-      <a class="btn btn-sm text-muted" href="{% url 'blog:delete_comment' post.id comment.id %}" role="button">
-        Удалить комментарий
-      </a>
-    {% endif %}
   </div>
-{% endfor %}
+</div>
